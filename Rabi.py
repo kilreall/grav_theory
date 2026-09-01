@@ -2,6 +2,15 @@
 import numpy as np 
 import matplotlib.pyplot as plt 
 from scipy.integrate import solve_ivp
+from scipy.optimize import curve_fit
+
+
+def Rabifit(t, w, A, B, tc):
+    return -A*np.exp(-(t/tc))*np.cos(w*t)+B
+
+
+def Rabifit_t(t, w0, A, B, tc, a, u):
+    return -A*np.exp(-(t/tc))*np.cos((w0+a*t)*t)+B + u*t
 
 
 def ph(t, v0, Dw):
@@ -52,8 +61,8 @@ def Rabi_osc(Dw, v0, B0, t1, t_steps):
     return P2
 
 
-def Rabi_osc_group(v0, T, Dw, B0, t1, t_steps, N):
-    sigma_v = np.sqrt(kb*T/m_Rb)
+def Rabi_osc_group(v0, TK, Dw, B0, t1, t_steps, N):
+    sigma_v = np.sqrt(kb*TK/m_Rb)
     v_range = np.linspace(-4*sigma_v, 4*sigma_v, N)
     dv = v_range[1] - v_range[0]
     P = np.zeros(t_steps)
@@ -74,6 +83,13 @@ def Rabi_osc_group(v0, T, Dw, B0, t1, t_steps, N):
     print(f"WGequa = {np.pi/t_eval[np.argmax(P)]*1e-3} kHz")
     print(f"WGcounted = {np.sqrt((W1**2/D - W2**2/D - (-keff*v0 + Dw))**2 + 4*W1**2*W2**2/D**2)*1e-3} kHz (no g acceleration)")
 
+    # fit
+    p0 = [np.pi/t_eval[np.argmax(P)],(np.max(P) - np.min(P))/2, np.min(P), 2*t_eval[np.argmax(P)]]
+    popt, pcov = curve_fit(Rabifit, t_eval, P, p0=p0)
+    w, A, B, tc = popt
+    plt.plot(t_eval*1e6, Rabifit(t_eval, w, A, B, tc), label="fit $\Omega=const$")
+    print(f"Weffconst={w*1e-3} kHz")
+    print(f"typconst = {np.pi/w}")
 
     return 1
 
@@ -265,17 +281,17 @@ N = 200
 
 # Rabi Osc group
 v0 = 0
-T = 6e-6
+TK = 6e-6
 Dw = W1**2/D - W2**2/D
 B0 = [1+0j, 0+0j]
 v0 = 0
-t1 = 200e-6          
+t1 = 100e-6          
 N = 200
-Rabi_osc_group(v0, T, Dw, B0, t1, t_steps, N)
+Rabi_osc_group(v0, TK, Dw, B0, t1, t_steps, N)
 
 
 
-# Rabi Osc group
+# spectrum group
 v0 = 0
 T = 6e-6
 Dw1 = -600e3
