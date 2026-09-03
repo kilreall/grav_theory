@@ -6,11 +6,11 @@ from scipy.optimize import curve_fit
 
 
 def Rabifit(t, w, A, B, tc):
-    return -A*np.exp(-(t/tc))*np.cos(w*t)+B
+    return -A*np.exp(-(t/tc))*np.cos(w*t) + B
 
 
-def Rabifit_t(t, w0, A, B, tc, a, u):
-    return -A*np.exp(-(t/tc))*np.cos((w0+a*t)*t)+B + u*t
+def Rabifit_t(t, w0, A, B, tc, a):
+    return -A*np.exp(-(t/tc))*np.cos((w0+a*t)*t)+B
 
 
 def ph(t, v0, Dw):
@@ -83,13 +83,32 @@ def Rabi_osc_group(v0, TK, Dw, B0, t1, t_steps, N):
     print(f"WGequa = {np.pi/t_eval[np.argmax(P)]*1e-3} kHz")
     print(f"WGcounted = {np.sqrt((W1**2/D - W2**2/D - (-keff*v0 + Dw))**2 + 4*W1**2*W2**2/D**2)*1e-3} kHz (no g acceleration)")
 
+    # comparison 
+    # np.save("t_eval.npy", t_eval)
+    # np.save("Pg-.npy", P)
+
     # fit
-    p0 = [np.pi/t_eval[np.argmax(P)],(np.max(P) - np.min(P))/2, np.min(P), 2*t_eval[np.argmax(P)]]
-    popt, pcov = curve_fit(Rabifit, t_eval, P, p0=p0)
+    p0 = [np.pi/t_eval[np.argmax(P)],(np.max(P) - np.min(P))/2, (np.max(P) + np.min(P))/2, 2*t_eval[np.argmax(P)]]
+    popt, pcov = curve_fit(Rabifit, t_eval, P, p0=p0, maxfev=10000)
     w, A, B, tc = popt
     plt.plot(t_eval*1e6, Rabifit(t_eval, w, A, B, tc), label="fit $\Omega=const$")
     print(f"Weffconst={w*1e-3} kHz")
     print(f"typconst = {np.pi/w}")
+
+    # fit_t
+    tau_peak2 = t_eval[np.argmax(P)]**2*1e12
+    p0 = [w, A, B, tc, w/tau_peak2]
+    popt, pcov = curve_fit(Rabifit_t, t_eval, P, p0=p0, maxfev=10000)
+    w0, A, B, tc, a = popt
+
+    plt.plot(t_eval*1e6, Rabifit_t(t_eval, w0, A, B, tc, a), label="fit $\Omega(t)$")
+
+
+
+    plt.figure()
+
+    plt.plot(t_eval*1e6, (w0+a*t_eval)*1e-3)
+
 
     return 1
 
@@ -285,7 +304,7 @@ TK = 6e-6
 Dw = W1**2/D - W2**2/D
 B0 = [1+0j, 0+0j]
 v0 = 0
-t1 = 100e-6          
+t1 = 200e-6          
 N = 200
 Rabi_osc_group(v0, TK, Dw, B0, t1, t_steps, N)
 
