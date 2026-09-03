@@ -84,30 +84,30 @@ def Rabi_osc_group(v0, TK, Dw, B0, t1, t_steps, N):
     print(f"WGcounted = {np.sqrt((W1**2/D - W2**2/D - (-keff*v0 + Dw))**2 + 4*W1**2*W2**2/D**2)*1e-3} kHz (no g acceleration)")
 
     # comparison 
-    # np.save("t_eval.npy", t_eval)
-    # np.save("Pg-.npy", P)
+    # np.save("1t_eval.npy", t_eval)
+    # np.save("1Pg+.npy", P)
 
     # fit
-    p0 = [np.pi/t_eval[np.argmax(P)],(np.max(P) - np.min(P))/2, (np.max(P) + np.min(P))/2, 2*t_eval[np.argmax(P)]]
-    popt, pcov = curve_fit(Rabifit, t_eval, P, p0=p0, maxfev=10000)
-    w, A, B, tc = popt
-    plt.plot(t_eval*1e6, Rabifit(t_eval, w, A, B, tc), label="fit $\Omega=const$")
-    print(f"Weffconst={w*1e-3} kHz")
-    print(f"typconst = {np.pi/w}")
+    # p0 = [np.pi/t_eval[np.argmax(P)],(np.max(P) - np.min(P))/2, (np.max(P) + np.min(P))/2, 2*t_eval[np.argmax(P)]]
+    # popt, pcov = curve_fit(Rabifit, t_eval, P, p0=p0, maxfev=10000)
+    # w, A, B, tc = popt
+    # plt.plot(t_eval*1e6, Rabifit(t_eval, w, A, B, tc), label="fit $\Omega=const$")
+    # print(f"Weffconst={w*1e-3} kHz")
+    # print(f"typconst = {np.pi/w}")
 
     # fit_t
-    tau_peak2 = t_eval[np.argmax(P)]**2*1e12
-    p0 = [w, A, B, tc, w/tau_peak2]
-    popt, pcov = curve_fit(Rabifit_t, t_eval, P, p0=p0, maxfev=10000)
-    w0, A, B, tc, a = popt
+    # tau_peak2 = t_eval[np.argmax(P)]**2*1e12
+    # p0 = [w, A, B, tc, w/tau_peak2]
+    # popt, pcov = curve_fit(Rabifit_t, t_eval, P, p0=p0, maxfev=10000)
+    # w0, A, B, tc, a = popt
 
-    plt.plot(t_eval*1e6, Rabifit_t(t_eval, w0, A, B, tc, a), label="fit $\Omega(t)$")
+    # plt.plot(t_eval*1e6, Rabifit_t(t_eval, w0, A, B, tc, a), label="fit $\Omega(t)$")
 
 
 
-    plt.figure()
+    # plt.figure()
 
-    plt.plot(t_eval*1e6, (w0+a*t_eval)*1e-3)
+    # plt.plot(t_eval*1e6, (w0+a*t_eval)*1e-3)
 
 
     return 1
